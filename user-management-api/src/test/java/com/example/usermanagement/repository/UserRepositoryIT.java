@@ -8,6 +8,7 @@ import com.example.usermanagement.model.Role;
 import com.example.usermanagement.model.User;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,6 +44,11 @@ class UserRepositoryIT {
 
     @Autowired
     private RoleRepository roleRepository;
+
+    @BeforeEach
+    void setUp() {
+        userRepository.deleteAll();
+    }
 
     @Test
     void savesUserAndLoadsRolesFromPostgres() {

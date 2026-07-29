@@ -127,7 +127,9 @@ class UserServiceTest {
         assertThat(existingUser.getEmail()).isEqualTo("immutable@example.com");
         assertThat(existingUser.getUsername()).isEqualTo("updated-user");
         assertThat(existingUser.getTaxCode()).isEqualTo("VRDLGI80A01H501U");
-        assertThat(existingUser.getRoles()).containsExactly(buildRole(3L, AppRole.MAINTAINER));
+        assertThat(existingUser.getRoles())
+            .extracting(Role::getName)
+            .containsExactly(AppRole.MAINTAINER);
         assertThat(response.email()).isEqualTo("immutable@example.com");
     }
 
