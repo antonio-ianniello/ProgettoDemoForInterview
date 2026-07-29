@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.example.usermanagement.model.AppRole;
+import com.example.usermanagement.model.Role;
 import com.example.usermanagement.model.User;
 import java.util.Optional;
 import java.util.Set;
@@ -40,41 +41,51 @@ class UserRepositoryIT {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     @Test
     void savesUserAndLoadsRolesFromPostgres() {
+        Set<Role> roles = roleRepository.findByNameIn(Set.of(AppRole.MAINTAINER, AppRole.REPORTER));
+
         User user = new User();
         user.setUsername("postgres-user");
         user.setEmail("postgres.user@example.com");
         user.setTaxCode("RSSMRA80A01H501U");
-        user.setFirstName("Postgres");
-        user.setLastName("Tester");
-        user.setRoles(Set.of(AppRole.MAINTAINER, AppRole.REPORTER));
+        user.setName("Postgres");
+        user.setSurname("Tester");
+        user.setRoles(roles);
 
         User saved = userRepository.saveAndFlush(user);
         Optional<User> loaded = userRepository.findById(saved.getId());
 
         assertThat(loaded).isPresent();
-        assertThat(loaded.orElseThrow().getRoles()).containsExactlyInAnyOrder(AppRole.MAINTAINER, AppRole.REPORTER);
+        Set<AppRole> loadedRoles = loaded.orElseThrow().getRoles().stream()
+            .map(Role::getName)
+            .collect(java.util.stream.Collectors.toSet());
+        assertThat(loadedRoles).containsExactlyInAnyOrder(AppRole.MAINTAINER, AppRole.REPORTER);
     }
 
     @Test
     void duplicateEmailViolatesUniqueConstraint() {
+        Set<Role> roles = roleRepository.findByNameIn(Set.of(AppRole.OWNER));
+
         User first = new User();
         first.setUsername("first-user");
         first.setEmail("duplicate@example.com");
         first.setTaxCode("RSSMRA80A01H501U");
-        first.setFirstName("First");
-        first.setLastName("User");
-        first.setRoles(Set.of(AppRole.OWNER));
+        first.setName("First");
+        first.setSurname("User");
+        first.setRoles(roles);
         userRepository.saveAndFlush(first);
 
         User second = new User();
         second.setUsername("second-user");
         second.setEmail("duplicate@example.com");
         second.setTaxCode("VRDLGI80A01H501U");
-        second.setFirstName("Second");
-        second.setLastName("User");
-        second.setRoles(Set.of(AppRole.REPORTER));
+        second.setName("Second");
+        second.setSurname("User");
+        second.setRoles(roles);
 
         assertThatThrownBy(() -> userRepository.saveAndFlush(second))
             .isInstanceOf(DataIntegrityViolationException.class);

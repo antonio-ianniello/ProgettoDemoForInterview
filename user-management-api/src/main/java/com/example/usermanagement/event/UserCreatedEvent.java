@@ -3,12 +3,11 @@ package com.example.usermanagement.event;
 import com.example.usermanagement.model.AppRole;
 import com.example.usermanagement.model.User;
 import java.time.Instant;
-import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.UUID;
+import java.util.stream.Collectors;
 
 public record UserCreatedEvent(
-    UUID userId,
+    Long userId,
     String username,
     String email,
     Set<AppRole> roles,
@@ -16,11 +15,14 @@ public record UserCreatedEvent(
 ) {
 
     public static UserCreatedEvent from(User user) {
+        Set<AppRole> appRoles = user.getRoles().stream()
+            .map(role -> role.getName())
+            .collect(Collectors.toSet());
         return new UserCreatedEvent(
             user.getId(),
             user.getUsername(),
             user.getEmail(),
-            new LinkedHashSet<>(user.getRoles()),
+            appRoles,
             user.getCreatedAt()
         );
     }

@@ -9,7 +9,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.example.usermanagement.model.AppRole;
+import com.example.usermanagement.model.Role;
 import com.example.usermanagement.model.User;
+import com.example.usermanagement.repository.RoleRepository;
 import com.example.usermanagement.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
@@ -40,6 +42,9 @@ class UserControllerIT {
     private UserRepository userRepository;
 
     @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @BeforeEach
@@ -53,7 +58,7 @@ class UserControllerIT {
 
         mockMvc.perform(get("/users/{id}", savedUser.getId()).with(jwtWithRole("USER")))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(savedUser.getId().toString()))
+            .andExpect(jsonPath("$.id").value(savedUser.getId()))
             .andExpect(jsonPath("$.email").value("reader@example.com"))
             .andExpect(jsonPath("$.taxCode").doesNotExist())
             .andExpect(jsonPath("$.roles").doesNotExist());
@@ -75,8 +80,8 @@ class UserControllerIT {
             "username", "new-user",
             "email", "new.user@example.com",
             "taxCode", "VRDLGI80A01H501U",
-            "firstName", "Luigi",
-            "lastName", "Verdi",
+            "name", "Luigi",
+            "surname", "Verdi",
             "roles", List.of("DEVELOPER", "REPORTER")
         ));
 
@@ -101,13 +106,14 @@ class UserControllerIT {
     }
 
     private User buildUser(String email) {
+        Role ownerRole = roleRepository.findByNameIn(Set.of(AppRole.OWNER)).iterator().next();
         User user = new User();
         user.setUsername("mrossi");
         user.setEmail(email);
         user.setTaxCode("RSSMRA80A01H501U");
-        user.setFirstName("Mario");
-        user.setLastName("Rossi");
-        user.setRoles(Set.of(AppRole.OWNER));
+        user.setName("Mario");
+        user.setSurname("Rossi");
+        user.setRoles(Set.of(ownerRole));
         user.setCreatedAt(Instant.parse("2024-01-01T10:15:30Z"));
         user.setUpdatedAt(Instant.parse("2024-01-01T10:15:30Z"));
         return user;

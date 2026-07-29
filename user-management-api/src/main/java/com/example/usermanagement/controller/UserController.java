@@ -8,7 +8,6 @@ import com.example.usermanagement.dto.UserSummaryResponse;
 import com.example.usermanagement.service.UserService;
 import jakarta.validation.Valid;
 import java.net.URI;
-import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -49,7 +48,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR', 'USER')")
-    public UserResponse getUser(@PathVariable UUID id, Authentication authentication) {
+    public UserResponse getUser(@PathVariable Long id, Authentication authentication) {
         return userService.getUser(id, jwtRoleExtractor.extract(authentication));
     }
 
@@ -70,7 +69,7 @@ public class UserController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR')")
     public UserResponse updateUser(
-        @PathVariable UUID id,
+        @PathVariable Long id,
         @Valid @RequestBody UpdateUserRequest request,
         Authentication authentication
     ) {
@@ -79,7 +78,7 @@ public class UserController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }

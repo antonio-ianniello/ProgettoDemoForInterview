@@ -2,13 +2,12 @@ package com.example.usermanagement.repository;
 
 import com.example.usermanagement.model.User;
 import java.util.Optional;
-import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface UserRepository extends JpaRepository<User, UUID> {
+public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmailIgnoreCase(String email);
 
@@ -18,5 +17,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     @Override
     @EntityGraph(attributePaths = "roles")
-    Optional<User> findById(UUID uuid);
+    Optional<User> findById(Long id);
 }
