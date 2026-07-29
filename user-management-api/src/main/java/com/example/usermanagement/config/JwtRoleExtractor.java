@@ -14,30 +14,33 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtRoleExtractor {
 
-    public KeycloakRole extract(Authentication authentication) {
-        Set<String> roles = new LinkedHashSet<>();
-        roles.addAll(extractFromAuthorities(authentication));
-        roles.addAll(extractFromJwt(authentication));
+    private final JwtConfig jwtConfig;
 
-        if (roles.contains(KeycloakRole.ADMIN.name())) {
-            return KeycloakRole.ADMIN;
-        }
-        if (roles.contains(KeycloakRole.OPERATOR.name())) {
-            return KeycloakRole.OPERATOR;
-        }
-        if (roles.contains(KeycloakRole.USER.name())) {
-            return KeycloakRole.USER;
-        }
+    public JwtRoleExtractor(JwtConfig jwtConfig) {
+        this.jwtConfig = jwtConfig;
+    }
+
+    public KeycloakRole extract(Authentication authentication) {
+        // Prima priorità: realm roles (ADMIN, OPERATOR, USER)
+        Set<String> realmRoles = extractRealmRolesFromAuthorities(authentication);
+        if (realmRoles.contains(KeycloakRole.ADMIN.name())) return KeycloakRole.ADMIN;
+        if (realmRoles.contains(KeycloakRole.OPERATOR.name())) return KeycloakRole.OPERATOR;
+        if (realmRoles.contains(KeycloakRole.USER.name())) return KeycloakRole.USER;
+
+        // Fallback: deriva il ruolo dai client roles (delete_user → ADMIN, create/update → OPERATOR, read → USER)
+        Set<String> clientRoles = extractClientRolesFromJwt(authentication);
+        if (clientRoles.contains("delete_user")) return KeycloakRole.ADMIN;
+        if (clientRoles.contains("update_user") || clientRoles.contains("create_user")) return KeycloakRole.OPERATOR;
+        if (clientRoles.contains("read_user")) return KeycloakRole.USER;
 
         throw new AccessDeniedException("Authenticated principal does not contain a supported Keycloak role");
     }
 
-    private Set<String> extractFromAuthorities(Authentication authentication) {
+    private Set<String> extractRealmRolesFromAuthorities(Authentication authentication) {
         Set<String> roles = new LinkedHashSet<>();
         if (authentication == null || authentication.getAuthorities() == null) {
             return roles;
         }
-
         for (GrantedAuthority authority : authentication.getAuthorities()) {
             String value = authority.getAuthority();
             if (value != null && value.startsWith("ROLE_")) {
@@ -48,22 +51,21 @@ public class JwtRoleExtractor {
     }
 
     @SuppressWarnings("unchecked")
-    private Set<String> extractFromJwt(Authentication authentication) {
+    private Set<String> extractClientRolesFromJwt(Authentication authentication) {
         Set<String> roles = new LinkedHashSet<>();
         if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
             return roles;
         }
+        Object resourceAccess = jwt.getClaim("resource_access");
+        if (!(resourceAccess instanceof Map<?, ?> resourceAccessMap)) return roles;
 
-        Object realmAccess = jwt.getClaim("realm_access");
-        if (!(realmAccess instanceof Map<?, ?> realmAccessMap)) {
-            return roles;
-        }
+        Object clientAccess = resourceAccessMap.get(jwtConfig.getClientId());
+        if (!(clientAccess instanceof Map<?, ?> clientAccessMap)) return roles;
 
-        Object realmRoles = realmAccessMap.get("roles");
-        if (realmRoles instanceof Collection<?> roleCollection) {
-            roleCollection.stream()
+        Object clientRoles = clientAccessMap.get("roles");
+        if (clientRoles instanceof Collection<?> clientRoleCollection) {
+            clientRoleCollection.stream()
                 .map(String::valueOf)
-                .map(value -> value.toUpperCase(Locale.ROOT))
                 .forEach(roles::add);
         }
         return roles;

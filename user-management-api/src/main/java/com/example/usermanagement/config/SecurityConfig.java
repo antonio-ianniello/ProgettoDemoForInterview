@@ -22,6 +22,12 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+    private final JwtConfig jwtConfig;
+
+    public SecurityConfig(JwtConfig jwtConfig) {
+        this.jwtConfig = jwtConfig;
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -45,21 +51,34 @@ public class SecurityConfig {
     @SuppressWarnings("unchecked")
     private Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
         List<GrantedAuthority> authorities = new ArrayList<>();
+
+        // Realm roles → ROLE_ADMIN, ROLE_OPERATOR, ROLE_USER (usati da JwtRoleExtractor per il filtering)
         Object realmAccess = jwt.getClaim("realm_access");
-        if (!(realmAccess instanceof Map<?, ?> realmAccessMap)) {
-            return authorities;
+        if (realmAccess instanceof Map<?, ?> realmAccessMap) {
+            Object roles = realmAccessMap.get("roles");
+            if (roles instanceof Collection<?> roleCollection) {
+                roleCollection.stream()
+                    .map(String::valueOf)
+                    .map(role -> role.toUpperCase(Locale.ROOT))
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                    .forEach(authorities::add);
+            }
         }
 
-        Object roles = realmAccessMap.get("roles");
-        if (!(roles instanceof Collection<?> roleCollection)) {
-            return authorities;
+        // Client roles → read_user, create_user, update_user, delete_user (usati da @PreAuthorize)
+        Object resourceAccess = jwt.getClaim("resource_access");
+        if (resourceAccess instanceof Map<?, ?> resourceAccessMap) {
+            Object clientAccess = resourceAccessMap.get(jwtConfig.getClientId());
+            if (clientAccess instanceof Map<?, ?> clientAccessMap) {
+                Object clientRoles = clientAccessMap.get("roles");
+                if (clientRoles instanceof Collection<?> clientRoleCollection) {
+                    clientRoleCollection.stream()
+                        .map(String::valueOf)
+                        .map(SimpleGrantedAuthority::new)
+                        .forEach(authorities::add);
+                }
+            }
         }
-
-        roleCollection.stream()
-            .map(String::valueOf)
-            .map(role -> role.toUpperCase(Locale.ROOT))
-            .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-            .forEach(authorities::add);
 
         return authorities;
     }

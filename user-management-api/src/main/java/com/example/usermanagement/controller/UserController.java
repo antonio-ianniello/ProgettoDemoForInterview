@@ -38,7 +38,8 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR', 'USER')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR', 'USER')")
+    @PreAuthorize("hasAuthority('read_user')")
     public Page<UserSummaryResponse> getUsers(
         @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
         Authentication authentication
@@ -47,13 +48,15 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR', 'USER')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR', 'USER')")
+    @PreAuthorize("hasAuthority('read_user')")
     public UserResponse getUser(@PathVariable Long id, Authentication authentication) {
         return userService.getUser(id, jwtRoleExtractor.extract(authentication));
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR')")
+    @PreAuthorize("hasAuthority('create_user')")
     public ResponseEntity<UserResponse> createUser(
         @Valid @RequestBody CreateUserRequest request,
         Authentication authentication
@@ -67,7 +70,8 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR')")
+    //@PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR')")
+    @PreAuthorize("hasAuthority('update_user')")
     public UserResponse updateUser(
         @PathVariable Long id,
         @Valid @RequestBody UpdateUserRequest request,
@@ -77,7 +81,8 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('delete_user')")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();

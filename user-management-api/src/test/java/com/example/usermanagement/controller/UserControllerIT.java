@@ -15,6 +15,7 @@ import com.example.usermanagement.repository.RoleRepository;
 import com.example.usermanagement.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
 import org.springframework.test.context.ActiveProfiles;
@@ -140,8 +142,20 @@ class UserControllerIT {
     }
 
     private JwtRequestPostProcessor jwtWithRole(String role) {
+        List<String> clientAuthorities = switch (role) {
+            case "ADMIN"    -> List.of("read_user", "create_user", "update_user", "delete_user");
+            case "OPERATOR" -> List.of("read_user", "create_user", "update_user");
+            default         -> List.of("read_user");
+        };
+
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+        clientAuthorities.forEach(a -> authorities.add(new SimpleGrantedAuthority(a)));
+
         return jwt()
-            .jwt(token -> token.claim("realm_access", Map.of("roles", List.of(role))))
-            .authorities(new SimpleGrantedAuthority("ROLE_" + role));
+            .jwt(token -> token
+                .claim("realm_access", Map.of("roles", List.of(role)))
+                .claim("resource_access", Map.of("demo-task", Map.of("roles", clientAuthorities))))
+            .authorities((GrantedAuthority) authorities);
     }
 }
