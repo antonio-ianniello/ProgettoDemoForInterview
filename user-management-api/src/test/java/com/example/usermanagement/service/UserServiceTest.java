@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.example.usermanagement.config.KeycloakRole;
 import com.example.usermanagement.dto.CreateUserRequest;
 import com.example.usermanagement.dto.UpdateUserRequest;
+import com.example.usermanagement.event.OutboxEventPublisher;
 import com.example.usermanagement.event.UserCreatedEvent;
 import com.example.usermanagement.exception.DuplicateEmailException;
 import com.example.usermanagement.mapper.UserMapper;
@@ -29,7 +30,6 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -41,14 +41,14 @@ class UserServiceTest {
     private RoleRepository roleRepository;
 
     @Mock
-    private ApplicationEventPublisher applicationEventPublisher;
+    private OutboxEventPublisher outboxEventPublisher;
 
     private UserService userService;
 
     @BeforeEach
     void setUp() {
         UserMapper userMapper = Mappers.getMapper(UserMapper.class);
-        userService = new UserServiceImpl(userRepository, roleRepository, userMapper, applicationEventPublisher);
+        userService = new UserServiceImpl(userRepository, roleRepository, userMapper, outboxEventPublisher);
     }
 
     @Test
@@ -76,7 +76,7 @@ class UserServiceTest {
         assertThat(response.roles()).containsExactlyInAnyOrder(AppRole.OWNER, AppRole.REPORTER);
 
         ArgumentCaptor<UserCreatedEvent> eventCaptor = ArgumentCaptor.forClass(UserCreatedEvent.class);
-        verify(applicationEventPublisher).publishEvent(eventCaptor.capture());
+        verify(outboxEventPublisher).publish(eventCaptor.capture());
         assertThat(eventCaptor.getValue().userId()).isEqualTo(savedUser.getId());
         assertThat(eventCaptor.getValue().email()).isEqualTo(savedUser.getEmail());
     }
@@ -99,7 +99,7 @@ class UserServiceTest {
             .hasMessageContaining("mario.rossi@example.com");
 
         verify(userRepository, never()).save(any(User.class));
-        verify(applicationEventPublisher, never()).publishEvent(any());
+        verify(outboxEventPublisher, never()).publish(any());
     }
 
     @Test

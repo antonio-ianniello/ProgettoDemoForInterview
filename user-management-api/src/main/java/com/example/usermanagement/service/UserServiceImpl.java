@@ -5,6 +5,7 @@ import com.example.usermanagement.dto.CreateUserRequest;
 import com.example.usermanagement.dto.UpdateUserRequest;
 import com.example.usermanagement.dto.UserResponse;
 import com.example.usermanagement.dto.UserSummaryResponse;
+import com.example.usermanagement.event.OutboxEventPublisher;
 import com.example.usermanagement.event.UserCreatedEvent;
 import com.example.usermanagement.exception.DuplicateEmailException;
 import com.example.usermanagement.exception.ResourceNotFoundException;
@@ -15,7 +16,6 @@ import com.example.usermanagement.repository.RoleRepository;
 import com.example.usermanagement.repository.UserRepository;
 import java.util.Locale;
 import java.util.Set;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,18 +28,18 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final OutboxEventPublisher outboxEventPublisher;
 
     public UserServiceImpl(
         UserRepository userRepository,
         RoleRepository roleRepository,
         UserMapper userMapper,
-        ApplicationEventPublisher applicationEventPublisher
+        OutboxEventPublisher outboxEventPublisher
     ) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
-        this.applicationEventPublisher = applicationEventPublisher;
+        this.outboxEventPublisher = outboxEventPublisher;
     }
 
     @Override
@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
         user.setRoles(resolvedRoles);
 
         User savedUser = userRepository.save(user);
-        applicationEventPublisher.publishEvent(UserCreatedEvent.from(savedUser));
+        outboxEventPublisher.publish(UserCreatedEvent.from(savedUser));
         return userMapper.toResponse(savedUser, viewerRole);
     }
 
