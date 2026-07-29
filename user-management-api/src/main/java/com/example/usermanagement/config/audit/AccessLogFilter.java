@@ -1,5 +1,7 @@
-package com.example.usermanagement.audit;
+package com.example.usermanagement.config.audit;
 
+import com.example.usermanagement.model.AccessLog;
+import com.example.usermanagement.service.AccessLogService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,4 +1,4 @@
-package com.example.usermanagement.config;
+package com.example.usermanagement.config.jwt;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;

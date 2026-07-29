@@ -1,12 +1,11 @@
 package com.example.usermanagement.controller;
 
-import com.example.usermanagement.config.JwtRoleExtractor;
+import com.example.usermanagement.config.jwt.JwtRoleExtractor;
 import com.example.usermanagement.dto.CreateUserRequest;
 import com.example.usermanagement.dto.UpdateUserRequest;
 import com.example.usermanagement.dto.UserResponse;
 import com.example.usermanagement.dto.UserSummaryResponse;
 import com.example.usermanagement.service.UserService;
-import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import java.net.URI;
 import org.springdoc.core.annotations.ParameterObject;

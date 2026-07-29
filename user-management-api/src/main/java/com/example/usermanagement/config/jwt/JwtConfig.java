@@ -1,4 +1,4 @@
-package com.example.usermanagement.config;
+package com.example.usermanagement.config.jwt;
 
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
