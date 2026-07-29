@@ -1,4 +1,4 @@
-package com.example.usermanagement.event;
+package com.example.usermanagement.enums;
 
 public enum OutboxStatus {
     PENDING,

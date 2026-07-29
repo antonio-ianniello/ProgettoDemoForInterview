@@ -8,7 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.usermanagement.config.KeycloakRole;
+import com.example.usermanagement.enums.KeycloakRole;
 import com.example.usermanagement.dto.CreateUserRequest;
 import com.example.usermanagement.dto.UpdateUserRequest;
 import com.example.usermanagement.event.OutboxEventPublisher;

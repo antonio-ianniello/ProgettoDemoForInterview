@@ -1,6 +1,6 @@
 package com.example.usermanagement.mapper;
 
-import com.example.usermanagement.config.KeycloakRole;
+import com.example.usermanagement.enums.KeycloakRole;
 import com.example.usermanagement.dto.CreateUserRequest;
 import com.example.usermanagement.dto.UpdateUserRequest;
 import com.example.usermanagement.dto.UserResponse;

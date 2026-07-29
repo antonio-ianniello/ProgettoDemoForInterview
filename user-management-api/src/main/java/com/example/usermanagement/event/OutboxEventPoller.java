@@ -1,5 +1,7 @@
 package com.example.usermanagement.event;
 
+import com.example.usermanagement.enums.OutboxStatus;
+import com.example.usermanagement.repository.OutboxEventRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.List;

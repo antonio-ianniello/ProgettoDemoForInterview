@@ -6,8 +6,10 @@ import com.example.usermanagement.dto.UpdateUserRequest;
 import com.example.usermanagement.dto.UserResponse;
 import com.example.usermanagement.dto.UserSummaryResponse;
 import com.example.usermanagement.service.UserService;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import java.net.URI;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -41,7 +43,9 @@ public class UserController {
     //@PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR', 'USER')")
     @PreAuthorize("hasAuthority('read_user')")
     public Page<UserSummaryResponse> getUsers(
-        @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+        @ParameterObject
+        @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC)
+        Pageable pageable,
         Authentication authentication
     ) {
         return userService.getUsers(pageable, jwtRoleExtractor.extract(authentication));

@@ -1,4 +1,4 @@
-package com.example.usermanagement.config;
+package com.example.usermanagement.enums;
 
 public enum KeycloakRole {
     ADMIN(true, true),
