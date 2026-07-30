@@ -3,5 +3,6 @@ target/
 *.iml
 .env
 .devenv
+.envFromIde
 **/application-local.yml
 **/application-dev.yml

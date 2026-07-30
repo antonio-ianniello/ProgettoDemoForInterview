@@ -20,17 +20,36 @@ services:
       timeout: 5s
       retries: 5
 
+  app:
+    build: .
+    image: user-management-api:latest
+    container_name: user-management-app
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT}:8080"
+    env_file: .env
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      KEYCLOAK_JWK_SET_URI: ${KEYCLOAK_JWK_SET_URI}
+    networks:
+      - user-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
     container_name: user-management-keycloak
     profiles: ["security"]
     restart: unless-stopped
-    command: ["start-dev", "--http-port=8080"]
+    command: ["start-dev", "--http-port=8080", "--import-realm"]
     ports:
       - "${KEYCLOAK_LOCAL_PORT}:8080"
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
     networks:
       - user-network
     depends_on:
