@@ -2,18 +2,12 @@ package com.example.usermanagement.repository;
 
 import com.example.usermanagement.model.User;
 import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmailIgnoreCase(String email);
-
-    @Override
-    @EntityGraph(attributePaths = "roles")
-    Page<User> findAll(Pageable pageable);
 
     @Override
     @EntityGraph(attributePaths = "roles")
