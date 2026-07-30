@@ -4,5 +4,7 @@ target/
 .env
 .devenv
 .envFromIde
+.envForOnlyDocker
+interview.postman_collection.json
 **/application-local.yml
 **/application-dev.yml
